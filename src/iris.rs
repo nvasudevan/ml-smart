@@ -6,6 +6,7 @@ use smartcore::linear::logistic_regression::LogisticRegression;
 use smartcore::naive_bayes::gaussian::GaussianNB;
 
 pub(crate) fn knn_classify() {
+    println!("\n=> Running KNN on Iris ...");
     let ds = iris::load_dataset();
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data
@@ -21,7 +22,8 @@ pub(crate) fn knn_classify() {
     println!("accuracy: {}", acc);
 }
 
-pub(crate) fn regression() {
+pub(crate) fn logistic_regression() {
+    println!("\n=> Running logistic regression on Iris ...");
     let ds = iris::load_dataset();
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data
@@ -41,6 +43,7 @@ pub(crate) fn regression() {
 }
 
 pub(crate) fn guassian() {
+    println!("\n=> Running Guassian on Iris ...");
     let ds = iris::load_dataset();
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data

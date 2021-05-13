@@ -6,6 +6,7 @@ use smartcore::metrics::{accuracy, mean_absolute_error};
 use smartcore::model_selection::train_test_split;
 
 pub(crate) fn linear_regression() {
+    println!("\n=> Running linear regression on Boston ...");
     let ds = boston::load_dataset();
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
@@ -13,33 +14,35 @@ pub(crate) fn linear_regression() {
     let (x_train,
          x_test,
          y_train,
-         y_test) = train_test_split(&nm_matrix, &ds.target, 0.6, true);
+         y_test) = train_test_split(&nm_matrix, &ds.target, 0.8, true);
     println!("nXm[len={}]: {:?}", ds.num_samples, nm_matrix);
-    println!("train: {:?}", x_train);
     let lnr_boston = LinearRegression::fit(
         &x_train, &y_train, Default::default(),
     ).unwrap();
     println!("lnr_boston: {:?}", lnr_boston);
 
     //now try on test data
-    println!("\nx_test: {:?}", x_test);
-    println!("y_test: {:?}", y_test);
     let p = lnr_boston.predict(&x_test).unwrap();
-    println!("\np: {:?}", p);
-
     println!("accuracy: {}", accuracy(&y_test, &p));
     println!("mean abs error: {}", mean_absolute_error(&y_test, &p));
 }
 
 pub(crate) fn logistic_regression() {
+    println!("\n=> Running logistic regression on Boston ...");
     let ds = boston::load_dataset();
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
     );
-    println!("nXm[len={}]: {:?}", ds.num_samples, nm_matrix);
+    let (x_train,
+        x_test,
+        y_train,
+        y_test) = train_test_split(&nm_matrix, &ds.target, 0.6, true);
 
     let lr_boston = LogisticRegression::fit(
-        &nm_matrix, &ds.target, Default::default(),
+        &x_train, &y_train, Default::default(),
     ).unwrap();
-    println!("lr_boston: {:?}", lr_boston);
+
+    let p = lr_boston.predict(&x_test).unwrap();
+    println!("accuracy: {}", accuracy(&y_test, &p));
+    println!("mean abs error: {}", mean_absolute_error(&y_test, &p));
 }

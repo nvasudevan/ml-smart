@@ -6,10 +6,10 @@ mod wine;
 fn main() {
     println!("Hello, world!");
     // iris::knn_classify();
-    // iris::regression();
+    // iris::logistic_regression();
     // iris::guassian();
-    // boston::logistic_regression();
     // boston::linear_regression();
-    wine::linear_regression()
-        .expect("Error");
+    // boston::logistic_regression();
+    wine::linear_regression().expect("Error");
+    wine::logistic_regression().expect("Error");
 }

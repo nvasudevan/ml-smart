@@ -12,4 +12,5 @@ fn main() {
     // boston::logistic_regression();
     wine::linear_regression().expect("Error");
     wine::logistic_regression().expect("Error");
+    wine::guassian_regression().expect("Error");
 }

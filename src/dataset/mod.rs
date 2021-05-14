@@ -6,7 +6,7 @@ use std::{
 use std::fmt::Formatter;
 
 pub(crate) mod wine;
-mod wine_quality;
+pub(crate) mod wine_quality;
 
 // applies to all datasets
 pub(crate) const TRAINING_TEST_SIZE_RATIO: f32 = 0.8; // train=20%; test=80%

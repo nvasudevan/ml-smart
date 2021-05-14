@@ -22,7 +22,7 @@ pub(crate) fn knn_classify() {
         y_test) = train_test_split(
         &nm_matrix,
         &ds.target,
-        dataset::TRAINING_TEST_SIZE_RATIO,
+        crate::TRAINING_TEST_SIZE_RATIO,
         true,
     );
     let knn_boston = KNNClassifier::fit(
@@ -49,7 +49,7 @@ pub(crate) fn linear_regression() {
         y_test) = train_test_split(
         &nm_matrix,
         &ds.target,
-        dataset::TRAINING_TEST_SIZE_RATIO,
+        crate::TRAINING_TEST_SIZE_RATIO,
         true,
     );
     let lnr_boston = LinearRegression::fit(
@@ -76,7 +76,7 @@ pub(crate) fn logistic_regression() {
         y_test) = train_test_split(
         &nm_matrix,
         &ds.target,
-        dataset::TRAINING_TEST_SIZE_RATIO,
+        crate::TRAINING_TEST_SIZE_RATIO,
         true,
     );
 

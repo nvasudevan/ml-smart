@@ -8,9 +8,6 @@ use std::fmt::Formatter;
 pub(crate) mod wine;
 pub(crate) mod wine_quality;
 
-// applies to all datasets
-pub(crate) const TRAINING_TEST_SIZE_RATIO: f32 = 0.8; // train=20%; test=80%
-
 // path of various datasets
 pub(crate) const WINE_DATASET: &str = "./datasets/wine/class/wine.data";
 pub(crate) const WINE_RED_QUALITY_DATASET: &str = "./datasets/wine/quality/winequality-red.csv";

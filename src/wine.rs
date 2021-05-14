@@ -21,7 +21,7 @@ pub(crate) fn knn_classify() -> Result<(), DatasetParseError> {
         y_test) = train_test_split(
         &nm_matrix,
         &ds.target,
-        dataset::TRAINING_TEST_SIZE_RATIO,
+        crate::TRAINING_TEST_SIZE_RATIO,
         true
     );
     let knn_wine = KNNClassifier::fit(
@@ -48,7 +48,7 @@ pub(crate) fn linear_regression() -> Result<(), DatasetParseError> {
         y_test) = train_test_split(
         &nm_matrix,
         &ds.target,
-        dataset::TRAINING_TEST_SIZE_RATIO,
+        crate::TRAINING_TEST_SIZE_RATIO,
         true
     );
     let lnr_wine = LinearRegression::fit(
@@ -75,13 +75,12 @@ pub(crate) fn logistic_regression() -> Result<(), DatasetParseError> {
         y_test) = train_test_split(
         &nm_matrix,
         &ds.target,
-        dataset::TRAINING_TEST_SIZE_RATIO,
+        crate::TRAINING_TEST_SIZE_RATIO,
         true
     );
     let logr_wine = LogisticRegression::fit(
         &x_train, &y_train, Default::default(),
     ).unwrap();
-    // println!("logr_wine: {:?}", logr_wine);
 
     //now try on test data
     let p = logr_wine.predict(&x_test).unwrap();
@@ -103,7 +102,7 @@ pub(crate) fn gaussian_regression() -> Result<(), DatasetParseError> {
         y_test) = train_test_split(
         &nm_matrix,
         &ds.target,
-        dataset::TRAINING_TEST_SIZE_RATIO,
+        crate::TRAINING_TEST_SIZE_RATIO,
         true
     );
     let guass_wine = GaussianNB::fit(

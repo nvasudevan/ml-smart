@@ -6,8 +6,15 @@ use std::{
 use std::fmt::Formatter;
 
 pub(crate) mod wine;
+mod wine_quality;
 
-pub(crate) const WINE_DATASET: &str = "./datasets/wine.data";
+// applies to all datasets
+pub(crate) const TRAINING_TEST_SIZE_RATIO: f32 = 0.8; // train=20%; test=80%
+
+// path of various datasets
+pub(crate) const WINE_DATASET: &str = "./datasets/wine/class/wine.data";
+pub(crate) const WINE_RED_QUALITY_DATASET: &str = "./datasets/wine/quality/winequality-red.csv";
+pub(crate) const WINE_WHITE_QUALITY_DATASET: &str = "./datasets/wine/quality/winequality-white.csv";
 
 #[derive(Debug)]
 pub(crate) struct DatasetParseError {

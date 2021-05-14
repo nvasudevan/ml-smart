@@ -125,7 +125,8 @@ pub(crate) fn load_dataset(data_file: &str) -> Result<Dataset<f32, f32>, Dataset
         description: "The Boston house-price data: https://archive.ics.uci.edu/ml/datasets/Wine"
             .to_string(),
     };
-    println!("ds: {:?}", ds);
+    println!("ds: samples={}, features={}, target={}",
+             ds.num_samples, ds.num_features, ds.target_names.join(", "));
 
     Ok(ds)
 }

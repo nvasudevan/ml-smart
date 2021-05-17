@@ -10,8 +10,9 @@ use smartcore::neighbors::knn_classifier::KNNClassifier;
 use smartcore::neighbors::knn_regressor::KNNRegressor;
 use smartcore::naive_bayes::categorical::CategoricalNB;
 use crate::results::MLResult;
+use smartcore::naive_bayes::multinomial::MultinomialNB;
 
-pub(crate) fn knn_classify(results: &mut Vec<MLResult>) {
+fn knn_classify(results: &mut Vec<MLResult>) {
     println!("=> Running KNN classifier on Boston ...");
     let ds = boston::load_dataset();
     let nm_matrix = DenseMatrix::from_array(
@@ -31,7 +32,7 @@ pub(crate) fn knn_classify(results: &mut Vec<MLResult>) {
     results.push(res);
 }
 
-pub(crate) fn knn_regression(results: &mut Vec<MLResult>) {
+fn knn_regression(results: &mut Vec<MLResult>) {
     println!("=> Running KNN regression on Boston ...");
     let ds = boston::load_dataset();
     let nm_matrix = DenseMatrix::from_array(
@@ -50,7 +51,7 @@ pub(crate) fn knn_regression(results: &mut Vec<MLResult>) {
     results.push(res);
 }
 
-pub(crate) fn linear_regression(results: &mut Vec<MLResult>) {
+fn linear_regression(results: &mut Vec<MLResult>) {
     println!("=> Running linear regression on Boston ...");
     let ds = boston::load_dataset();
     let nm_matrix = DenseMatrix::from_array(
@@ -78,7 +79,7 @@ pub(crate) fn linear_regression(results: &mut Vec<MLResult>) {
     results.push(res);
 }
 
-pub(crate) fn logistic_regression(results: &mut Vec<MLResult>) {
+fn logistic_regression(results: &mut Vec<MLResult>) {
     println!("=> Running logistic regression on Boston ...");
     let ds = boston::load_dataset();
     let nm_matrix = DenseMatrix::from_array(
@@ -106,7 +107,7 @@ pub(crate) fn logistic_regression(results: &mut Vec<MLResult>) {
     results.push(res);
 }
 
-pub(crate) fn gaussianNB(results: &mut Vec<MLResult>) {
+fn gaussianNB(results: &mut Vec<MLResult>) {
     println!("=> Running gaussian NB on Boston ...");
     let ds = boston::load_dataset();
     let nm_matrix = DenseMatrix::from_array(
@@ -134,7 +135,7 @@ pub(crate) fn gaussianNB(results: &mut Vec<MLResult>) {
     results.push(res);
 }
 
-pub(crate) fn categoricalNB(results: &mut Vec<MLResult>) {
+fn categoricalNB(results: &mut Vec<MLResult>) {
     println!("=> Running categorical NB on Boston ...");
     let ds = boston::load_dataset();
     let nm_matrix = DenseMatrix::from_array(
@@ -162,6 +163,34 @@ pub(crate) fn categoricalNB(results: &mut Vec<MLResult>) {
     results.push(res);
 }
 
+fn multinomialNB(results: &mut Vec<MLResult>) {
+    println!("=> Running categorical NB on Boston ...");
+    let ds = boston::load_dataset();
+    let nm_matrix = DenseMatrix::from_array(
+        ds.num_samples, ds.num_features, &ds.data,
+    );
+    let (x_train,
+        x_test,
+        y_train,
+        y_test) = train_test_split(
+        &nm_matrix,
+        &ds.target,
+        crate::TRAINING_TEST_SIZE_RATIO,
+        true,
+    );
+
+    let model = MultinomialNB::fit(
+        &x_train, &y_train, Default::default(),
+    ).unwrap();
+
+    let p = model.predict(&x_test).unwrap();
+    let res = MLResult::new( "Multinomial NB".to_string(),
+                             accuracy(&y_test, &p),
+                             mean_absolute_error(&y_test, &p)
+    );
+    results.push(res);
+}
+
 pub(crate) fn run() -> Vec<MLResult> {
     let mut results = Vec::<MLResult>::new();
 
@@ -171,7 +200,7 @@ pub(crate) fn run() -> Vec<MLResult> {
     logistic_regression(&mut results);
     // gaussianNB(&mut results);
     categoricalNB(&mut results);
-    // multinomialNB(&mut results);
+    multinomialNB(&mut results);
 
     results
 }

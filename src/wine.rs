@@ -10,65 +10,53 @@ use smartcore::neighbors::knn_classifier::KNNClassifier;
 use smartcore::naive_bayes::categorical::CategoricalNB;
 use smartcore::neighbors::knn_regressor::KNNRegressor;
 use smartcore::naive_bayes::multinomial::MultinomialNB;
+use crate::results::MLResult;
+use crate::wine_quality::gaussian_regression;
 
 
-pub(crate) fn knn_classify() -> Result<(), DatasetParseError> {
-    println!("\n=> Running KNN classifier on wine ...");
+fn knn_classify() -> Result<MLResult, DatasetParseError> {
+    println!("=> Running KNN classifier on wine ...");
     let ds = dataset::wine::load_dataset(dataset::WINE_DATASET)?;
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
-    );
-    let (x_train,
-        x_test,
-        y_train,
-        y_test) = train_test_split(
-        &nm_matrix,
-        &ds.target,
-        crate::TRAINING_TEST_SIZE_RATIO,
-        true
     );
     let knn_wine = KNNClassifier::fit(
-        &x_train, &y_train, Default::default(),
+        &nm_matrix, &ds.target, Default::default(),
     ).unwrap();
 
     //now try on test data
-    let p = knn_wine.predict(&x_test).unwrap();
-    println!("accuracy: {}", accuracy(&y_test, &p));
-    println!("mean abs error: {}", mean_absolute_error(&y_test, &p));
+    let p = knn_wine.predict(&nm_matrix).unwrap();
+    let res = MLResult::new( "kNN-classifier".to_string(),
+                             accuracy(&ds.target, &p),
+                             mean_absolute_error(&ds.target, &p)
+    );
 
-    Ok(())
+    Ok(res)
 }
 
 
-pub(crate) fn knn_regression() -> Result<(), DatasetParseError> {
-    println!("\n=> Running KNN regression on wine ...");
+fn knn_regression() -> Result<MLResult, DatasetParseError> {
+    println!("=> Running KNN regression on wine ...");
     let ds = dataset::wine::load_dataset(dataset::WINE_DATASET)?;
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
     );
-    let (x_train,
-        x_test,
-        y_train,
-        y_test) = train_test_split(
-        &nm_matrix,
-        &ds.target,
-        crate::TRAINING_TEST_SIZE_RATIO,
-        true
-    );
     let model = KNNRegressor::fit(
-        &x_train, &y_train, Default::default(),
+        &nm_matrix, &ds.target, Default::default(),
     ).unwrap();
 
     //now try on test data
-    let p = model.predict(&x_test).unwrap();
-    println!("accuracy: {}", accuracy(&y_test, &p));
-    println!("mean abs error: {}", mean_absolute_error(&y_test, &p));
+    let p = model.predict(&nm_matrix).unwrap();
+    let res = MLResult::new( "kNN-regressor".to_string(),
+                             accuracy(&ds.target, &p),
+                             mean_absolute_error(&ds.target, &p)
+    );
 
-    Ok(())
+    Ok(res)
 }
 
-pub(crate) fn linear_regression() -> Result<(), DatasetParseError> {
-    println!("\n=> Running linear regression on Wine ...");
+fn linear_regression() -> Result<MLResult, DatasetParseError> {
+    println!("=> Running linear regression on Wine ...");
     let ds = dataset::wine::load_dataset(dataset::WINE_DATASET)?;
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
@@ -88,14 +76,16 @@ pub(crate) fn linear_regression() -> Result<(), DatasetParseError> {
 
     //now try on test data
     let p = lnr_wine.predict(&x_test).unwrap();
-    println!("accuracy: {}", accuracy(&y_test, &p));
-    println!("mean abs error: {}", mean_absolute_error(&y_test, &p));
+    let res = MLResult::new( "Linear Regression".to_string(),
+                             accuracy(&y_test, &p),
+                             mean_absolute_error(&y_test, &p)
+    );
 
-    Ok(())
+    Ok(res)
 }
 
-pub(crate) fn logistic_regression() -> Result<(), DatasetParseError> {
-    println!("\n=> Running logistic regression on Wine ...");
+fn logistic_regression() -> Result<MLResult, DatasetParseError> {
+    println!("=> Running logistic regression on Wine ...");
     let ds = dataset::wine::load_dataset(dataset::WINE_DATASET)?;
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
@@ -115,14 +105,16 @@ pub(crate) fn logistic_regression() -> Result<(), DatasetParseError> {
 
     //now try on test data
     let p = logr_wine.predict(&x_test).unwrap();
-    println!("accuracy: {}", accuracy(&y_test, &p));
-    println!("mean abs error: {}", mean_absolute_error(&y_test, &p));
+    let res = MLResult::new( "Logistic Regression".to_string(),
+                             accuracy(&y_test, &p),
+                             mean_absolute_error(&y_test, &p)
+    );
 
-    Ok(())
+    Ok(res)
 }
 
-pub(crate) fn gaussian_regression() -> Result<(), DatasetParseError> {
-    println!("\n=> Running gaussian regression on Wine ...");
+fn gaussianNB() -> Result<MLResult, DatasetParseError> {
+    println!("=> Running gaussian regression on Wine ...");
     let ds = dataset::wine::load_dataset(dataset::WINE_DATASET)?;
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
@@ -142,14 +134,16 @@ pub(crate) fn gaussian_regression() -> Result<(), DatasetParseError> {
 
     //now try on test data
     let p = guass_wine.predict(&x_test).unwrap();
-    println!("accuracy: {}", accuracy(&y_test, &p));
-    println!("mean abs error: {}", mean_absolute_error(&y_test, &p));
+    let res = MLResult::new( "Gaussian NB".to_string(),
+                             accuracy(&y_test, &p),
+                             mean_absolute_error(&y_test, &p)
+    );
 
-    Ok(())
+    Ok(res)
 }
 
-pub(crate) fn categoricalNB() -> Result<(), DatasetParseError> {
-    println!("\n=> Running categorical NB on Wine ...");
+fn categoricalNB() -> Result<MLResult, DatasetParseError> {
+    println!("=> Running categorical NB on Wine ...");
     let ds = dataset::wine::load_dataset(dataset::WINE_DATASET)?;
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
@@ -169,13 +163,15 @@ pub(crate) fn categoricalNB() -> Result<(), DatasetParseError> {
 
     //now try on test data
     let p = model.predict(&x_test).unwrap();
-    println!("accuracy: {}", accuracy(&y_test, &p));
-    println!("mean abs error: {}", mean_absolute_error(&y_test, &p));
+    let res = MLResult::new( "Categorical NB".to_string(),
+                             accuracy(&y_test, &p),
+                             mean_absolute_error(&y_test, &p)
+    );
 
-    Ok(())
+    Ok(res)
 }
 
-pub(crate) fn multinomialNB() -> Result<(), DatasetParseError> {
+fn multinomialNB() -> Result<MLResult, DatasetParseError> {
     println!("\n=> Running multinomial NB on Wine ...");
     let ds = dataset::wine::load_dataset(dataset::WINE_DATASET)?;
     let nm_matrix = DenseMatrix::from_array(
@@ -196,9 +192,24 @@ pub(crate) fn multinomialNB() -> Result<(), DatasetParseError> {
 
     //now try on test data
     let p = model.predict(&x_test).unwrap();
-    println!("accuracy: {}", accuracy(&y_test, &p));
-    println!("mean abs error: {}", mean_absolute_error(&y_test, &p));
+    let res = MLResult::new( "Multinomial NB".to_string(),
+                             accuracy(&y_test, &p),
+                             mean_absolute_error(&y_test, &p)
+    );
 
-    Ok(())
+    Ok(res)
 }
 
+pub(crate) fn run() -> Result<Vec<MLResult>, DatasetParseError> {
+    let mut results = Vec::<MLResult>::new();
+
+    results.push(knn_classify()?);
+    results.push(knn_regression()?);
+    results.push(linear_regression()?);
+    results.push(logistic_regression()?);
+    results.push(gaussianNB()?);
+    results.push(categoricalNB()?);
+    results.push(multinomialNB()?);
+
+    Ok(results)
+}

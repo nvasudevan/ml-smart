@@ -22,6 +22,7 @@ pub(crate) fn show(results: Vec<MLResult>) {
     }
 
     table.printstd();
+    println!();
 }
 
 fn main() {
@@ -33,12 +34,10 @@ fn main() {
     println!("\n=>[Boston] ML result: \n");
     show(boston_results);
 
-    // boston::knn_classify();
-    // boston::knn_regression();
-    // boston::linear_regression();
-    // boston::logistic_regression();
-    // // boston::gaussianNB();
-    // boston::categoricalNB();
+    let wine_results = wine::run()
+        .expect("Failed to run wine dataset");
+    println!("\n=>[Wine class] ML result: \n");
+    show(wine_results);
 
     // wine::knn_classify().expect("Error occurred in KNN");
     // wine::knn_regression().expect("Error occurred in kNN");

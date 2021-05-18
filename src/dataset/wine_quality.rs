@@ -49,7 +49,7 @@ impl WineQuality {
 }
 
 fn parse_data_file(data_file: &str) -> Result<(Vec<String>, Vec<WineQuality>), DatasetParseError> {
-    let mut dataf = fs::File::open(data_file)?;
+    let dataf = fs::File::open(data_file)?;
     let data_lines = BufReader::new(dataf).lines();
     let mut wine_recs = Vec::<WineQuality>::new();
 

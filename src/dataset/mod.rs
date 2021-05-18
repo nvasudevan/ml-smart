@@ -4,6 +4,7 @@ use std::{
     num::ParseFloatError
 };
 use std::fmt::Formatter;
+use smartcore::error::Failed;
 
 pub(crate) mod wine;
 pub(crate) mod wine_quality;
@@ -28,6 +29,14 @@ impl From<io::Error> for DatasetParseError {
 
 impl From<ParseFloatError> for DatasetParseError {
     fn from(err: ParseFloatError) -> Self {
+        Self {
+            msg: err.to_string()
+        }
+    }
+}
+
+impl From<Failed> for DatasetParseError {
+    fn from(err: Failed) -> Self {
         Self {
             msg: err.to_string()
         }

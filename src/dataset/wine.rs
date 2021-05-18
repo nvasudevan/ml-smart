@@ -1,5 +1,5 @@
-use std::{fs, io};
-use std::io::{Read, BufReader, BufRead};
+use std::fs;
+use std::io::{BufReader, BufRead};
 use crate::dataset::DatasetParseError;
 use smartcore::dataset::Dataset;
 
@@ -51,7 +51,7 @@ impl WineRecord {
 }
 
 fn parse_data_file(data_file: &str) -> Result<Vec<WineRecord>, DatasetParseError> {
-    let mut dataf = fs::File::open(data_file)?;
+    let dataf = fs::File::open(data_file)?;
     let data_lines = BufReader::new(dataf).lines();
     let mut wine_recs = Vec::<WineRecord>::new();
 

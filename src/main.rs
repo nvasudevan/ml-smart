@@ -26,11 +26,13 @@ pub(crate) fn show(results: Vec<MLResult>) {
 }
 
 fn main() {
-    let iris_results = iris::run();
+    let iris_results = iris::run()
+        .expect("ML run failed for Iris dataset");
     println!("\n=>[IRIS] ML result: \n");
     show(iris_results);
 
-    let boston_results = boston::run();
+    let boston_results = boston::run()
+        .expect("ML run failed for Boston dataset");
     println!("\n=>[Boston] ML result: \n");
     show(boston_results);
 
@@ -39,26 +41,13 @@ fn main() {
     println!("\n=>[Wine class] ML result: \n");
     show(wine_results);
 
-    // wine::knn_classify().expect("Error occurred in KNN");
-    // wine::knn_regression().expect("Error occurred in kNN");
-    // wine::linear_regression().expect("Error");
-    // wine::logistic_regression().expect("Error");
-    // wine::gaussian_regression().expect("Error");
-    // wine::categoricalNB();
-    // wine::multinomialNB();
+    let red_wine_quality_results = wine_quality::run_red()
+        .expect("Failed to run red wine quality dataset");
+    println!("\n=>[Red Wine quality] ML result: \n");
+    show(red_wine_quality_results);
 
-    // wine_quality::knn_classify()
-    //     .expect("Error whilst running kNN classifier for wine quality");
-    // wine_quality::knn_regression()
-    //     .expect("Error whilst running kNN regression for wine quality");
-    // wine_quality::logistic_regression()
-    //     .expect("Error whilst running logistic for wine quality");
-    // // wine_quality::gaussian_regression()
-    // //     .expect("Error whilst running Gaussian NB classifier for wine quality");
-    // wine_quality::linear_regression()
-    //     .expect("Error whilst running linear for wine quality");
-    // wine_quality::categoricalNB()
-    //     .expect("Error whilst running categorical NB for wine quality");
-    // wine_quality::multinomialNB()
-    //     .expect("Error whilst running multinomial NB for wine quality");
+    let white_wine_quality_results = wine_quality::run_white()
+        .expect("Failed to run white wine quality dataset");
+    println!("\n=>[White Wine quality] ML result: \n");
+    show(white_wine_quality_results);
 }

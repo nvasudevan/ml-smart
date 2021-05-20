@@ -4,6 +4,9 @@ use prettytable::Table;
 #[macro_use]
 extern crate prettytable;
 
+#[macro_use]
+extern crate lazy_static;
+
 mod iris;
 mod boston;
 mod dataset;
@@ -16,9 +19,9 @@ pub(crate) const TRAINING_TEST_SIZE_RATIO: f32 = 0.7; // train=20%; test=80%
 
 pub(crate) fn show(results: Vec<MLResult>) {
     let mut table = Table::new();
-    table.add_row(row!["ML algo", "accuracy", "MAE"]);
+    table.add_row(row!["ML algo", "accuracy", "MAE", "MSE"]);
     for ml in results {
-        table.add_row(row![ml.name(), ml.acc(), ml.mae()]);
+        table.add_row(row![ml.name(), ml.acc(), ml.mae(), ml.mse()]);
     }
 
     table.printstd();

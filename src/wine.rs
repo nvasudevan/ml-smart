@@ -3,7 +3,6 @@ use smartcore::linear::linear_regression::LinearRegression;
 use smartcore::model_selection::train_test_split;
 use smartcore::linalg::naive::dense_matrix::DenseMatrix;
 use smartcore::metrics::{accuracy, mean_absolute_error};
-use crate::dataset::DatasetParseError;
 use smartcore::linear::logistic_regression::LogisticRegression;
 use smartcore::naive_bayes::gaussian::GaussianNB;
 use smartcore::neighbors::knn_classifier::KNNClassifier;
@@ -12,6 +11,7 @@ use smartcore::neighbors::knn_regressor::KNNRegressor;
 use smartcore::naive_bayes::multinomial::MultinomialNB;
 use crate::results::MLResult;
 use smartcore::dataset::Dataset;
+use crate::dataset::DatasetParseError;
 
 
 fn knn_classify(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
@@ -25,9 +25,9 @@ fn knn_classify(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
 
     //now try on test data
     let p = knn_wine.predict(&nm_matrix)?;
-    let res = MLResult::new( "kNN-classifier".to_string(),
-                             accuracy(&ds.target, &p),
-                             mean_absolute_error(&ds.target, &p)
+    let res = MLResult::new("kNN-classifier".to_string(),
+                            accuracy(&ds.target, &p),
+                            mean_absolute_error(&ds.target, &p),
     );
 
     Ok(res)
@@ -45,9 +45,9 @@ fn knn_regression(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError>
 
     //now try on test data
     let p = model.predict(&nm_matrix)?;
-    let res = MLResult::new( "kNN-regressor".to_string(),
-                             accuracy(&ds.target, &p),
-                             mean_absolute_error(&ds.target, &p)
+    let res = MLResult::new("kNN-regressor".to_string(),
+                            accuracy(&ds.target, &p),
+                            mean_absolute_error(&ds.target, &p),
     );
 
     Ok(res)
@@ -65,7 +65,7 @@ fn linear_regression(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseErr
         &nm_matrix,
         &ds.target,
         crate::TRAINING_TEST_SIZE_RATIO,
-        true
+        true,
     );
     let lnr_wine = LinearRegression::fit(
         &x_train, &y_train, Default::default(),
@@ -73,9 +73,9 @@ fn linear_regression(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseErr
 
     //now try on test data
     let p = lnr_wine.predict(&x_test)?;
-    let res = MLResult::new( "Linear Regression".to_string(),
-                             accuracy(&y_test, &p),
-                             mean_absolute_error(&y_test, &p)
+    let res = MLResult::new("Linear Regression".to_string(),
+                            accuracy(&y_test, &p),
+                            mean_absolute_error(&y_test, &p),
     );
 
     Ok(res)
@@ -93,7 +93,7 @@ fn logistic_regression(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseE
         &nm_matrix,
         &ds.target,
         crate::TRAINING_TEST_SIZE_RATIO,
-        true
+        true,
     );
     let logr_wine = LogisticRegression::fit(
         &x_train, &y_train, Default::default(),
@@ -101,9 +101,9 @@ fn logistic_regression(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseE
 
     //now try on test data
     let p = logr_wine.predict(&x_test)?;
-    let res = MLResult::new( "Logistic Regression".to_string(),
-                             accuracy(&y_test, &p),
-                             mean_absolute_error(&y_test, &p)
+    let res = MLResult::new("Logistic Regression".to_string(),
+                            accuracy(&y_test, &p),
+                            mean_absolute_error(&y_test, &p),
     );
 
     Ok(res)
@@ -121,7 +121,7 @@ fn gaussianNB(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
         &nm_matrix,
         &ds.target,
         crate::TRAINING_TEST_SIZE_RATIO,
-        true
+        true,
     );
     let guass_wine = GaussianNB::fit(
         &x_train, &y_train, Default::default(),
@@ -129,9 +129,9 @@ fn gaussianNB(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
 
     //now try on test data
     let p = guass_wine.predict(&x_test)?;
-    let res = MLResult::new( "Gaussian NB".to_string(),
-                             accuracy(&y_test, &p),
-                             mean_absolute_error(&y_test, &p)
+    let res = MLResult::new("Gaussian NB".to_string(),
+                            accuracy(&y_test, &p),
+                            mean_absolute_error(&y_test, &p),
     );
 
     Ok(res)
@@ -149,7 +149,7 @@ fn categoricalNB(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> 
         &nm_matrix,
         &ds.target,
         crate::TRAINING_TEST_SIZE_RATIO,
-        true
+        true,
     );
     let model = CategoricalNB::fit(
         &x_train, &y_train, Default::default(),
@@ -157,9 +157,9 @@ fn categoricalNB(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> 
 
     //now try on test data
     let p = model.predict(&x_test)?;
-    let res = MLResult::new( "Categorical NB".to_string(),
-                             accuracy(&y_test, &p),
-                             mean_absolute_error(&y_test, &p)
+    let res = MLResult::new("Categorical NB".to_string(),
+                            accuracy(&y_test, &p),
+                            mean_absolute_error(&y_test, &p),
     );
 
     Ok(res)
@@ -177,7 +177,7 @@ fn multinomialNB(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> 
         &nm_matrix,
         &ds.target,
         crate::TRAINING_TEST_SIZE_RATIO,
-        true
+        true,
     );
     let model = MultinomialNB::fit(
         &x_train, &y_train, Default::default(),
@@ -185,9 +185,9 @@ fn multinomialNB(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> 
 
     //now try on test data
     let p = model.predict(&x_test)?;
-    let res = MLResult::new( "Multinomial NB".to_string(),
-                             accuracy(&y_test, &p),
-                             mean_absolute_error(&y_test, &p)
+    let res = MLResult::new("Multinomial NB".to_string(),
+                            accuracy(&y_test, &p),
+                            mean_absolute_error(&y_test, &p),
     );
 
     Ok(res)

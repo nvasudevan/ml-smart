@@ -212,7 +212,7 @@ pub(crate) fn run_white() -> Result<Vec<MLResult>, DatasetParseError> {
     results.push(knn_regression(&ds)?);
     results.push(linear_regression(&ds)?);
     results.push(logistic_regression(&ds)?);
-    results.push(gaussianNB(&ds)?);
+    // results.push(gaussianNB(&ds)?);
     results.push(categoricalNB(&ds)?);
     results.push(multinomialNB(&ds)?);
 

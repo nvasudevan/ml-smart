@@ -149,7 +149,7 @@ mod tests {
     #[test]
     fn test_red_dataset() {
         let ds = load_red_dataset()
-            .unwrap();
+            .expect("Unable to load red wine dataset!");
         assert_eq!(ds.data.len(), WINE_RED_DATASET_SAMPLES_SIZE * WINE_RED_DATASET_NO_FEATURES);
         assert_eq!(ds.target.len(), WINE_RED_DATASET_SAMPLES_SIZE);
 

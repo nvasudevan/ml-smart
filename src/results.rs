@@ -2,7 +2,8 @@
 pub(crate) struct MLResult {
     name: String,
     acc: f32,
-    mae: f32
+    mae: f32,
+    mse: f32,
 }
 
 impl MLResult {
@@ -10,7 +11,8 @@ impl MLResult {
         MLResult {
             name,
             acc,
-            mae
+            mae,
+            mse: 0.0
         }
     }
 
@@ -24,5 +26,9 @@ impl MLResult {
 
     pub(crate) fn mae(&self) -> f32 {
         self.mae
+    }
+
+    pub(crate) fn mse(&self) -> f32 {
+        self.mse
     }
 }

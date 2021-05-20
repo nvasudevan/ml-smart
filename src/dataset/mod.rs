@@ -5,11 +5,14 @@ use std::{
 };
 use std::fmt::Formatter;
 use smartcore::error::Failed;
+use std::num::ParseIntError;
 
 pub(crate) mod wine;
 pub(crate) mod wine_quality;
+pub(crate) mod flag;
 
 // path of various datasets
+pub(crate) const FLAG_DATASET: &str = "./datasets/flags/flag.data";
 pub(crate) const WINE_DATASET: &str = "./datasets/wine/class/wine.data";
 pub(crate) const WINE_RED_QUALITY_DATASET: &str = "./datasets/wine/quality/winequality-red.csv";
 pub(crate) const WINE_WHITE_QUALITY_DATASET: &str = "./datasets/wine/quality/winequality-white.csv";
@@ -21,6 +24,14 @@ pub(crate) struct DatasetParseError {
 
 impl From<io::Error> for DatasetParseError {
     fn from(err: io::Error) -> Self {
+        Self {
+            msg: err.to_string()
+        }
+    }
+}
+
+impl From<ParseIntError> for DatasetParseError {
+    fn from(err: ParseIntError) -> Self {
         Self {
             msg: err.to_string()
         }

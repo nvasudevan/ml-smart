@@ -1,23 +1,38 @@
-use crate::dataset;
-use smartcore::linear::linear_regression::LinearRegression;
-use smartcore::model_selection::train_test_split;
+use crate::results::MLResult;
+use crate::dataset::{FLAG_DATASET, DatasetParseError, flag};
+use smartcore::dataset::Dataset;
 use smartcore::linalg::naive::dense_matrix::DenseMatrix;
+use smartcore::neighbors::knn_classifier::KNNClassifier;
 use smartcore::metrics::{accuracy, mean_absolute_error};
+use smartcore::model_selection::train_test_split;
 use smartcore::linear::logistic_regression::LogisticRegression;
 use smartcore::naive_bayes::gaussian::GaussianNB;
-use smartcore::neighbors::knn_classifier::KNNClassifier;
 use smartcore::naive_bayes::categorical::CategoricalNB;
-use smartcore::neighbors::knn_regressor::KNNRegressor;
 use smartcore::naive_bayes::multinomial::MultinomialNB;
-use crate::results::MLResult;
-use smartcore::dataset::Dataset;
-use crate::dataset::DatasetParseError;
+use smartcore::neighbors::knn_regressor::KNNRegressor;
 use smartcore::tree::decision_tree_classifier::DecisionTreeClassifier;
 use smartcore::ensemble::random_forest_classifier::RandomForestClassifier;
+use crate::dataset::flag::Flag;
 
+fn validate_predict(ds: &Dataset<f32, f32>, p: &Vec<f32>, flag_recs: &Vec<Flag>) {
+    let mut n = 0;
+    let mut unmatched_ctrys = Vec::<String>::new();
+    for (i, v) in ds.target.iter().enumerate() {
+        let p_val = p.get(i).unwrap();
+        if v == p_val {
+            n += 1;
+        } else {
+            let f = flag_recs.get(i)
+                .expect("error retrieving flag from flags vector");
+            unmatched_ctrys.push(f.country())
+        }
+    }
+    println!("total match, n={}, acc %={}", n, (n as f32) / (ds.num_samples as f32));
+    println!("unmatched: {}", unmatched_ctrys.join(", "));
+}
 
 fn knn_classify(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
-    println!("=> Running KNN classifier on wine ...");
+    println!("=> Running kNN on flag dataset ...");
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
     );
@@ -25,8 +40,8 @@ fn knn_classify(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
         &nm_matrix, &ds.target, Default::default(),
     )?;
 
-    //now try on test data
     let p = knn_wine.predict(&nm_matrix)?;
+    println!("p: {:?}", p);
     let res = MLResult::new("kNN-classifier".to_string(),
                             accuracy(&ds.target, &p),
                             mean_absolute_error(&ds.target, &p),
@@ -37,7 +52,7 @@ fn knn_classify(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
 
 
 fn knn_regression(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
-    println!("=> Running KNN regression on wine ...");
+    println!("=> Running kNN regression on flag dataset ...");
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
     );
@@ -55,8 +70,8 @@ fn knn_regression(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError>
     Ok(res)
 }
 
-fn linear_regression(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
-    println!("=> Running linear regression on Wine ...");
+fn tree_classifier_train(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
+    println!("=> Running decision tree classifier on flag dataset ...");
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
     );
@@ -69,13 +84,13 @@ fn linear_regression(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseErr
         crate::TRAINING_TEST_SIZE_RATIO,
         true,
     );
-    let lnr_wine = LinearRegression::fit(
+    let logr = DecisionTreeClassifier::fit(
         &x_train, &y_train, Default::default(),
     )?;
 
     //now try on test data
-    let p = lnr_wine.predict(&x_test)?;
-    let res = MLResult::new("Linear Regression".to_string(),
+    let p = logr.predict(&x_test)?;
+    let res = MLResult::new("Decision Tree Classifer".to_string(),
                             accuracy(&y_test, &p),
                             mean_absolute_error(&y_test, &p),
     );
@@ -83,8 +98,46 @@ fn linear_regression(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseErr
     Ok(res)
 }
 
+fn tree_classifier(ds: &Dataset<f32, f32>, flag_recs: &Vec<Flag>) -> Result<MLResult, DatasetParseError> {
+    println!("=> Running tree classifier on (full) flag dataset ...");
+    let nm_matrix = DenseMatrix::from_array(
+        ds.num_samples, ds.num_features, &ds.data,
+    );
+    let model = DecisionTreeClassifier::fit(
+        &nm_matrix, &ds.target, Default::default(),
+    )?;
+
+    let p = model.predict(&nm_matrix)?;
+    validate_predict(&ds, &p, &flag_recs);
+    let res = MLResult::new("Decision Tree classifier (full)".to_string(),
+                            accuracy(&ds.target, &p),
+                            mean_absolute_error(&ds.target, &p),
+    );
+
+    Ok(res)
+}
+
+fn random_forest_classifier(ds: &Dataset<f32, f32>, flag_recs: &Vec<Flag>) -> Result<MLResult, DatasetParseError> {
+    println!("=> Running forest classifier on flag dataset ...");
+    let nm_matrix = DenseMatrix::from_array(
+        ds.num_samples, ds.num_features, &ds.data,
+    );
+    let model = RandomForestClassifier::fit(
+        &nm_matrix, &ds.target, Default::default(),
+    )?;
+
+    let p = model.predict(&nm_matrix)?;
+    validate_predict(&ds, &p, flag_recs);
+    let res = MLResult::new("Random forest classifier".to_string(),
+                            accuracy(&ds.target, &p),
+                            mean_absolute_error(&ds.target, &p),
+    );
+
+    Ok(res)
+}
+
 fn logistic_regression(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
-    println!("=> Running logistic regression on Wine ...");
+    println!("=> Running logistic regression on flag dataset ...");
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
     );
@@ -97,12 +150,12 @@ fn logistic_regression(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseE
         crate::TRAINING_TEST_SIZE_RATIO,
         true,
     );
-    let logr_wine = LogisticRegression::fit(
+    let logr = LogisticRegression::fit(
         &x_train, &y_train, Default::default(),
     )?;
 
     //now try on test data
-    let p = logr_wine.predict(&x_test)?;
+    let p = logr.predict(&x_test)?;
     let res = MLResult::new("Logistic Regression".to_string(),
                             accuracy(&y_test, &p),
                             mean_absolute_error(&y_test, &p),
@@ -112,7 +165,7 @@ fn logistic_regression(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseE
 }
 
 fn gaussianNB(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
-    println!("=> Running gaussian regression on Wine ...");
+    println!("=> Running gaussian regression on flag ...");
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
     );
@@ -125,12 +178,12 @@ fn gaussianNB(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
         crate::TRAINING_TEST_SIZE_RATIO,
         true,
     );
-    let guass_wine = GaussianNB::fit(
+    let gauss = GaussianNB::fit(
         &x_train, &y_train, Default::default(),
     )?;
 
     //now try on test data
-    let p = guass_wine.predict(&x_test)?;
+    let p = gauss.predict(&x_test)?;
     let res = MLResult::new("Gaussian NB".to_string(),
                             accuracy(&y_test, &p),
                             mean_absolute_error(&y_test, &p),
@@ -140,7 +193,7 @@ fn gaussianNB(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
 }
 
 fn categoricalNB(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
-    println!("=> Running categorical NB on Wine ...");
+    println!("=> Running categorical NB on flag dataset ...");
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
     );
@@ -168,7 +221,7 @@ fn categoricalNB(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> 
 }
 
 fn multinomialNB(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
-    println!("=> Running multinomial NB on Wine ...");
+    println!("=> Running multinomial NB regression on flag dataset ...");
     let nm_matrix = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
     );
@@ -195,57 +248,39 @@ fn multinomialNB(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> 
     Ok(res)
 }
 
-fn tree_classifier(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
-    println!("=> Running tree classifier on (full) wine class dataset ...");
-    let nm_matrix = DenseMatrix::from_array(
-        ds.num_samples, ds.num_features, &ds.data,
-    );
-    let model = DecisionTreeClassifier::fit(
-        &nm_matrix, &ds.target, Default::default(),
-    )?;
-
-    let p = model.predict(&nm_matrix)?;
-    // validate_predict(&ds, &p, &flag_recs);
-    let res = MLResult::new("Decision Tree classifier (full)".to_string(),
-                            accuracy(&ds.target, &p),
-                            mean_absolute_error(&ds.target, &p),
-    );
-
-    Ok(res)
-}
-
-fn random_forest_classifier(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
-    println!("=> Running forest classifier on wine class dataset ...");
-    let nm_matrix = DenseMatrix::from_array(
-        ds.num_samples, ds.num_features, &ds.data,
-    );
-    let model = RandomForestClassifier::fit(
-        &nm_matrix, &ds.target, Default::default(),
-    )?;
-
-    let p = model.predict(&nm_matrix)?;
-    // validate_predict(&ds, &p, flag_recs);
-    let res = MLResult::new("Random forest classifier".to_string(),
-                            accuracy(&ds.target, &p),
-                            mean_absolute_error(&ds.target, &p),
-    );
-
-    Ok(res)
-}
-
-pub(crate) fn run() -> Result<Vec<MLResult>, DatasetParseError> {
-    let ds = dataset::wine::load_dataset(dataset::WINE_DATASET)?;
+pub(crate) fn run_predict_religion() -> Result<Vec<MLResult>, DatasetParseError> {
+    let (flag_recs, ds) = flag::load_dataset_tgt_religion(FLAG_DATASET)?;
     let mut results = Vec::<MLResult>::new();
 
     results.push(knn_classify(&ds)?);
     results.push(knn_regression(&ds)?);
-    results.push(linear_regression(&ds)?);
+    // results.push(linear_regression(&ds)?);
+    results.push(tree_classifier_train(&ds)?);
+    results.push(tree_classifier(&ds, &flag_recs)?);
+    results.push(random_forest_classifier(&ds, &flag_recs)?);
     results.push(logistic_regression(&ds)?);
-    results.push(gaussianNB(&ds)?);
+    // results.push(gaussianNB(&ds)?);
     results.push(categoricalNB(&ds)?);
     results.push(multinomialNB(&ds)?);
-    results.push(tree_classifier(&ds)?);
-    results.push(random_forest_classifier(&ds)?);
 
     Ok(results)
 }
+
+pub(crate) fn run_predict_language() -> Result<Vec<MLResult>, DatasetParseError> {
+    let (flag_recs, ds) = flag::load_dataset_tgt_language(FLAG_DATASET)?;
+    let mut results = Vec::<MLResult>::new();
+
+    results.push(knn_classify(&ds)?);
+    results.push(knn_regression(&ds)?);
+    // results.push(linear_regression(&ds)?);
+    results.push(tree_classifier_train(&ds)?);
+    results.push(tree_classifier(&ds, &flag_recs)?);
+    results.push(random_forest_classifier(&ds, &flag_recs)?);
+    results.push(logistic_regression(&ds)?);
+    // results.push(gaussianNB(&ds)?);
+    results.push(categoricalNB(&ds)?);
+    results.push(multinomialNB(&ds)?);
+
+    Ok(results)
+}
+

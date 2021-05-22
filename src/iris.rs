@@ -10,6 +10,8 @@ use smartcore::linear::linear_regression::LinearRegression;
 use smartcore::naive_bayes::multinomial::MultinomialNB;
 use crate::results::MLResult;
 use crate::dataset::DatasetParseError;
+use smartcore::ensemble::random_forest_classifier::RandomForestClassifier;
+use smartcore::tree::decision_tree_classifier::DecisionTreeClassifier;
 
 fn knn_classify(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
     println!("=> Running KNN classifier on Iris ...");
@@ -145,6 +147,44 @@ fn multinomialNB(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> 
     Ok(res)
 }
 
+fn tree_classifier(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
+    println!("=> Running tree classifier on (full) iris dataset ...");
+    let nm_matrix = DenseMatrix::from_array(
+        ds.num_samples, ds.num_features, &ds.data,
+    );
+    let model = DecisionTreeClassifier::fit(
+        &nm_matrix, &ds.target, Default::default(),
+    )?;
+
+    let p = model.predict(&nm_matrix)?;
+    // validate_predict(&ds, &p, &flag_recs);
+    let res = MLResult::new("Decision Tree classifier (full)".to_string(),
+                            accuracy(&ds.target, &p),
+                            mean_absolute_error(&ds.target, &p),
+    );
+
+    Ok(res)
+}
+
+fn random_forest_classifier(ds: &Dataset<f32, f32>) -> Result<MLResult, DatasetParseError> {
+    println!("=> Running forest classifier on iris dataset ...");
+    let nm_matrix = DenseMatrix::from_array(
+        ds.num_samples, ds.num_features, &ds.data,
+    );
+    let model = RandomForestClassifier::fit(
+        &nm_matrix, &ds.target, Default::default(),
+    )?;
+
+    let p = model.predict(&nm_matrix)?;
+    // validate_predict(&ds, &p, flag_recs);
+    let res = MLResult::new("Random forest classifier".to_string(),
+                            accuracy(&ds.target, &p),
+                            mean_absolute_error(&ds.target, &p),
+    );
+
+    Ok(res)
+}
+
 pub(crate) fn run() -> Result<Vec<MLResult>, DatasetParseError> {
     let ds = iris::load_dataset();
     let mut results = Vec::<MLResult>::new();
@@ -156,6 +196,8 @@ pub(crate) fn run() -> Result<Vec<MLResult>, DatasetParseError> {
     results.push(gaussianNB(&ds)?);
     results.push(categoricalNB(&ds)?);
     results.push(multinomialNB(&ds)?);
+    results.push(tree_classifier(&ds)?);
+    results.push(random_forest_classifier(&ds)?);
 
     Ok(results)
 }

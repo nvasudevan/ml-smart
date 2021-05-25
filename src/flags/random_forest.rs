@@ -42,7 +42,7 @@ fn train_and_test(ds: &Dataset<f32, f32>, params: RandomForestClassifierParamete
 }
 
 fn tweak_no_trees(ds: &Dataset<f32, f32>, criterion: &SplitCriterion)
-                  -> Result<(f32, RandomForestClassifierParameters), DatasetParseError> {
+                  -> Result<MLResult, DatasetParseError> {
     let mut no_changes = 0;
     let mut n_iter = 0;
     let mut acc = 0.0;
@@ -69,38 +69,32 @@ fn tweak_no_trees(ds: &Dataset<f32, f32>, criterion: &SplitCriterion)
 
         n_iter += 1;
         if no_changes >= crate::MAX_NO_CHANGES {
-            return Ok(
-                (
-                    acc,
-                    RandomForestClassifierParameters {
-                        criterion: criterion.clone(),
-                        max_depth: None,
-                        min_samples_leaf: 1,
-                        min_samples_split: 2,
-                        n_trees,
-                        m: Option::None,
-                    }
-                )
-            );
+            let opt_params = RandomForestClassifierParameters {
+                criterion: criterion.clone(),
+                max_depth: None,
+                min_samples_leaf: 1,
+                min_samples_split: 2,
+                n_trees,
+                m: Option::None,
+            };
+            let opt_res =  MLResult::new(res.name(), res_acc, res.mae());
+            return Ok(opt_res);
         }
     }
 }
 
-pub(crate) fn run(ds: &Dataset<f32, f32>) -> Result<(), DatasetParseError> {
-    println!("=> Running random forest classifier on flag dataset ...");
+pub(crate) fn run(ds: &Dataset<f32, f32>) -> Result<Vec<MLResult>, DatasetParseError> {
+    println!("\n=> Running random forest classifier on flag dataset ...");
     let splits = [
         SplitCriterion::Gini,
         SplitCriterion::Entropy,
         SplitCriterion::ClassificationError
     ];
 
+    let mut results = Vec::<MLResult>::new();
     for crit in splits.iter() {
-        let (acc, params) = tweak_no_trees(
-            &ds, crit
-        )?;
-        println!("best accuracy: {} (params: {:?})", acc, params);
-
+        results.push(tweak_no_trees( &ds, crit, )?);
     }
 
-    Ok(())
+    Ok(results)
 }

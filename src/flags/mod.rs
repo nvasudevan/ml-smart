@@ -235,12 +235,12 @@ pub(crate) fn run_predict_religion() -> Result<Vec<MLResult>, DatasetParseError>
     let (flag_recs, ds) = flag::load_dataset_tgt_religion(FLAG_DATASET)?;
     let mut results = Vec::<MLResult>::new();
 
-    knn_classifier::run(&ds)?;
+    results.append(&mut knn_classifier::run(&ds)?);
     // results.push(knn_regression(&ds)?);
     // // results.push(linear_regression(&ds)?);
     // results.push(tree_classifier_train(&ds)?);
     // results.push(tree_classifier(&ds, &flag_recs)?);
-    random_forest::run(&ds)?;
+    results.append(&mut random_forest::run(&ds)?);
     // results.push(logistic_regression(&ds)?);
     // // results.push(gaussianNB(&ds)?);
     // results.push(categoricalNB(&ds)?);

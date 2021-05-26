@@ -5,7 +5,7 @@ use smartcore::math::distance::{
     Distances,
     euclidian::Euclidian,
     hamming::Hamming,
-    manhattan::Manhattan
+    manhattan::Manhattan,
 };
 use smartcore::metrics::{accuracy, mean_absolute_error};
 use smartcore::model_selection::train_test_split;
@@ -26,6 +26,7 @@ pub(crate) struct KNNClassifierRun<'a> {
     y_test: Vec<f32>,
 }
 
+#[derive(Clone, Copy)]
 enum KNNDistance {
     Euclidean,
     Hamming,
@@ -96,53 +97,90 @@ impl<'a> KNNClassifierRun<'a> {
         self.results.push(res)
     }
 
-    fn train_and_test(&mut self, distance: KNNDistance, algorithm: &KNNAlgorithmName)
-                      -> Result<(), DatasetParseError> {
+    fn predict(&mut self,
+               k: usize,
+               distance: KNNDistance,
+               algorithm: &KNNAlgorithmName
+    ) -> Result<MLResult, DatasetParseError> {
         let mut tags = Vec::<String>::new();
         let p = match distance {
             KNNDistance::Hamming => {
                 let mut params = KNNClassifierParameters::default()
-                    .with_distance(Distances::hamming());
-                let params_algo = params.with_algorithm(algorithm.clone());
+                    .with_distance(Distances::hamming())
+                    .with_algorithm(algorithm.clone())
+                    .with_k(k);
+                // let params_algo = params.with_algorithm(algorithm.clone());
+                // let params_k = params.with_k(k);
                 tags.append(&mut knn_params_as_str(
                     &KNNDistance::Hamming,
                     &algorithm, &KNNWeightFunction::Uniform,
                 ));
                 let logr = KNNClassifier::fit(
-                    &self.x_train, &self.y_train, params_algo,
+                    &self.x_train, &self.y_train, params,
                 )?;
                 logr.predict(&self.x_test)?
             }
             KNNDistance::Manhattan => {
                 let params = KNNClassifierParameters::default()
-                    .with_distance(Distances::manhattan());
-                let params_algo = params.with_algorithm(algorithm.clone());
+                    .with_distance(Distances::manhattan())
+                    .with_algorithm(algorithm.clone())
+                    .with_k(k);
+                // let params_algo = params.with_algorithm(algorithm.clone());
                 tags.append(&mut knn_params_as_str(
                     &KNNDistance::Manhattan,
                     &algorithm, &KNNWeightFunction::Uniform,
                 ));
                 let logr = KNNClassifier::fit(
-                    &self.x_train, &self.y_train, params_algo,
+                    &self.x_train, &self.y_train, params,
                 )?;
                 logr.predict(&self.x_test)?
             }
             _ => {
-                let params = KNNClassifierParameters::default();
-                let params_algo = params.with_algorithm(algorithm.clone());
+                let params = KNNClassifierParameters::default()
+                    .with_algorithm(algorithm.clone())
+                    .with_k(k);
+                // let params_algo = params.with_algorithm(algorithm.clone());
                 tags.append(&mut knn_params_as_str(
                     &KNNDistance::Euclidean,
                     &algorithm, &KNNWeightFunction::Uniform,
                 ));
                 let logr = KNNClassifier::fit(
-                    &self.x_train, &self.y_train, params_algo,
+                    &self.x_train, &self.y_train, params,
                 )?;
                 logr.predict(&self.x_test)?
             }
         };
+
+        let params_s = format!("kNN, k={} [{}]", k, tags.join(", "));
         let acc = accuracy(&self.y_test, &p);
         let mae = mean_absolute_error(&self.y_test, &p);
-        let params_s = format!("kNN [{}]", tags.join(", "));
-        self.add_result(MLResult::new(params_s, acc, mae));
+
+        let res = MLResult::new(params_s, acc, mae);
+        Ok(res)
+    }
+
+    fn train_and_test(&mut self, distance: KNNDistance, algorithm: &KNNAlgorithmName)
+                      -> Result<(), DatasetParseError> {
+
+        let mut curr_res = MLResult::default();
+        let mut no_changes = 0;
+        // start from default value of k=3.
+        let mut curr_k = 3;
+
+        loop {
+            let res = self.predict(curr_k, distance, algorithm)?;
+            if res.acc() >= curr_res.acc() {
+                no_changes = 0;
+                curr_res = res;
+            } else {
+                no_changes += 1;
+            }
+            if no_changes >= crate::MAX_NO_CHANGES {
+                break
+            }
+            curr_k += 1;
+        }
+        self.add_result(curr_res);
 
         Ok(())
     }
@@ -167,7 +205,7 @@ impl<'a> KNNClassifierRun<'a> {
     }
 
     fn run_algorithm(&mut self, weight: KNNWeightFunction) -> Result<(), DatasetParseError> {
-        // run with default algorithm
+        // run with default algorithm (CoverTree)
         self.run_distance(KNNAlgorithmName::CoverTree)?;
         // run with LinearSearch
         self.run_distance(KNNAlgorithmName::LinearSearch)?;
@@ -176,7 +214,7 @@ impl<'a> KNNClassifierRun<'a> {
     }
 
     fn run_weight(&mut self) -> Result<(), DatasetParseError> {
-        // run with default weight
+        // run with default weight (Uniform)
         self.run_algorithm(KNNWeightFunction::Uniform)?;
         // run the distance, which uses inverse function
         self.run_algorithm(KNNWeightFunction::Distance)?;

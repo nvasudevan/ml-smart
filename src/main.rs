@@ -1,5 +1,7 @@
-use crate::results::MLResult;
+use crate::results::{MLResult, show};
 use prettytable::Table;
+use smartcore::algorithm::neighbour::KNNAlgorithmName;
+use smartcore::neighbors::KNNWeightFunction;
 
 #[macro_use]
 extern crate prettytable;
@@ -15,19 +17,54 @@ mod wine_quality;
 mod results;
 mod flags;
 
-// applies to all datasets
-pub(crate) const TRAINING_TEST_SIZE_RATIO: f32 = 0.7; // train=20%; test=80%
-pub(crate) const MAX_NO_CHANGES: usize = 20;
+#[derive(Clone, Copy)]
+enum KNNDistance {
+    Euclidean,
+    Hamming,
+    Manhattan,
+}
 
-pub(crate) fn show(results: Vec<MLResult>) {
-    let mut table = Table::new();
-    table.add_row(row!["ML algo", "accuracy", "MAE", "MSE*"]);
-    for ml in results {
-        table.add_row(row![ml.name(), ml.acc(), ml.mae(), ml.mse()]);
+// applies to all datasets
+pub(crate) const TRAINING_TEST_SIZE_RATIO: f32 = 0.7; // train=30%; test=70%
+pub(crate) const MAX_NO_CHANGES: usize = 10;
+
+fn algo_params_as_str(distance: &KNNDistance,
+                      algo: &KNNAlgorithmName,
+                      weight: Option<&KNNWeightFunction>)
+    -> Vec<String> {
+    let mut tags = Vec::<String>::new();
+    match distance {
+        KNNDistance::Hamming => {
+            tags.push("Hamming".to_string());
+        }
+        KNNDistance::Manhattan => {
+            tags.push("Manhattan".to_string());
+        }
+        _ => {
+            tags.push("Euclidean".to_string());
+        }
+    };
+
+    match algo {
+        KNNAlgorithmName::LinearSearch => {
+            tags.push("LinearSearch".to_string());
+        }
+        _ => {
+            tags.push("CoverTree".to_string());
+        }
     }
 
-    table.printstd();
-    println!();
+    match weight {
+        Some(KNNWeightFunction::Distance) => {
+            tags.push("Inverse".to_string());
+        }
+        Some(KNNWeightFunction::Uniform) => {
+            tags.push("Uniform".to_string());
+        }
+        _ => {}
+    }
+
+    tags
 }
 
 fn main() {

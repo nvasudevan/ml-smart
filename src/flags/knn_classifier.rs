@@ -13,9 +13,13 @@ use smartcore::neighbors::knn_classifier::{KNNClassifier, KNNClassifierParameter
 use smartcore::neighbors::knn_regressor::KNNRegressor;
 use smartcore::neighbors::KNNWeightFunction;
 
-use crate::dataset::DatasetParseError;
-use crate::flags::knn_regression;
-use crate::results::MLResult;
+use crate::{
+    algo_params_as_str,
+    dataset::DatasetParseError,
+    flags::knn_regression,
+    KNNDistance,
+    results::MLResult
+};
 
 pub(crate) struct KNNClassifierRun<'a> {
     pub(crate) results: Vec<MLResult>,
@@ -24,48 +28,6 @@ pub(crate) struct KNNClassifierRun<'a> {
     y_train: Vec<f32>,
     x_test: DenseMatrix<f32>,
     y_test: Vec<f32>,
-}
-
-#[derive(Clone, Copy)]
-enum KNNDistance {
-    Euclidean,
-    Hamming,
-    Manhattan,
-}
-
-fn knn_params_as_str(distance: &KNNDistance, algo: &KNNAlgorithmName, weight: &KNNWeightFunction) -> Vec<String> {
-    let mut tags = Vec::<String>::new();
-    match distance {
-        KNNDistance::Hamming => {
-            tags.push("Hamming".to_string());
-        }
-        KNNDistance::Manhattan => {
-            tags.push("Manhattan".to_string());
-        }
-        _ => {
-            tags.push("Euclidean".to_string());
-        }
-    };
-
-    match algo {
-        KNNAlgorithmName::LinearSearch => {
-            tags.push("LinearSearch".to_string());
-        }
-        _ => {
-            tags.push("CoverTree".to_string());
-        }
-    }
-
-    match weight {
-        KNNWeightFunction::Distance => {
-            tags.push("Inverse".to_string());
-        }
-        _ => {
-            tags.push("Uniform".to_string());
-        }
-    }
-
-    tags
 }
 
 impl<'a> KNNClassifierRun<'a> {
@@ -111,9 +73,9 @@ impl<'a> KNNClassifierRun<'a> {
                     .with_k(k);
                 // let params_algo = params.with_algorithm(algorithm.clone());
                 // let params_k = params.with_k(k);
-                tags.append(&mut knn_params_as_str(
+                tags.append(&mut algo_params_as_str(
                     &KNNDistance::Hamming,
-                    &algorithm, &KNNWeightFunction::Uniform,
+                    &algorithm, Some(&KNNWeightFunction::Uniform),
                 ));
                 let logr = KNNClassifier::fit(
                     &self.x_train, &self.y_train, params,
@@ -126,9 +88,9 @@ impl<'a> KNNClassifierRun<'a> {
                     .with_algorithm(algorithm.clone())
                     .with_k(k);
                 // let params_algo = params.with_algorithm(algorithm.clone());
-                tags.append(&mut knn_params_as_str(
+                tags.append(&mut algo_params_as_str(
                     &KNNDistance::Manhattan,
-                    &algorithm, &KNNWeightFunction::Uniform,
+                    &algorithm, Some(&KNNWeightFunction::Uniform),
                 ));
                 let logr = KNNClassifier::fit(
                     &self.x_train, &self.y_train, params,
@@ -140,9 +102,9 @@ impl<'a> KNNClassifierRun<'a> {
                     .with_algorithm(algorithm.clone())
                     .with_k(k);
                 // let params_algo = params.with_algorithm(algorithm.clone());
-                tags.append(&mut knn_params_as_str(
+                tags.append(&mut algo_params_as_str(
                     &KNNDistance::Euclidean,
-                    &algorithm, &KNNWeightFunction::Uniform,
+                    &algorithm, Some(&KNNWeightFunction::Uniform),
                 ));
                 let logr = KNNClassifier::fit(
                     &self.x_train, &self.y_train, params,

@@ -1,22 +1,29 @@
+use smartcore::dataset::Dataset;
+use smartcore::ensemble::random_forest_classifier::RandomForestClassifier;
+use smartcore::linalg::naive::dense_matrix::DenseMatrix;
+use smartcore::linear::logistic_regression::LogisticRegression;
+use smartcore::metrics::{accuracy, mean_absolute_error};
+use smartcore::model_selection::train_test_split;
+use smartcore::naive_bayes::{
+    categorical::CategoricalNB,
+    gaussian::GaussianNB,
+    multinomial::MultinomialNB
+};
+use smartcore::neighbors::{
+    knn_classifier::KNNClassifier,
+    knn_regressor::KNNRegressor
+};
+use smartcore::tree::decision_tree_classifier::DecisionTreeClassifier;
+
+use crate::dataset::{DatasetParseError, flag, FLAG_DATASET};
+use crate::dataset::flag::Flag;
+use crate::results::MLResult;
+
 mod random_forest;
 mod knn_classifier;
 mod decision_tree_classifier;
-
-use crate::results::MLResult;
-use crate::dataset::{FLAG_DATASET, DatasetParseError, flag};
-use smartcore::dataset::Dataset;
-use smartcore::linalg::naive::dense_matrix::DenseMatrix;
-use smartcore::neighbors::knn_classifier::KNNClassifier;
-use smartcore::metrics::{accuracy, mean_absolute_error};
-use smartcore::model_selection::train_test_split;
-use smartcore::linear::logistic_regression::LogisticRegression;
-use smartcore::naive_bayes::gaussian::GaussianNB;
-use smartcore::naive_bayes::categorical::CategoricalNB;
-use smartcore::naive_bayes::multinomial::MultinomialNB;
-use smartcore::neighbors::knn_regressor::KNNRegressor;
-use smartcore::tree::decision_tree_classifier::DecisionTreeClassifier;
-use smartcore::ensemble::random_forest_classifier::RandomForestClassifier;
-use crate::dataset::flag::Flag;
+mod kmeans;
+mod dbscan;
 
 fn validate_predict(ds: &Dataset<f32, f32>, p: &Vec<f32>, flag_recs: &Vec<Flag>) {
     let mut n = 0;
@@ -170,15 +177,17 @@ pub(crate) fn run_predict_religion() -> Result<Vec<MLResult>, DatasetParseError>
     let (flag_recs, ds) = flag::load_dataset_tgt_religion(FLAG_DATASET)?;
     let mut results = Vec::<MLResult>::new();
 
-    results.append(&mut knn_classifier::run(&ds)?);
-    results.push(knn_regression(&ds)?);
-    // // results.push(linear_regression(&ds)?);
-    results.append(&mut decision_tree_classifier::run(&ds)?);
-    results.append(&mut random_forest::run(&ds)?);
-    results.push(logistic_regression(&ds)?);
-    // // results.push(gaussianNB(&ds)?);
-    results.push(categoricalNB(&ds)?);
-    results.push(multinomialNB(&ds)?);
+    // results.append(&mut knn_classifier::run(&ds)?);
+    // results.push(knn_regression(&ds)?);
+    // // // results.push(linear_regression(&ds)?);
+    // results.append(&mut decision_tree_classifier::run(&ds)?);
+    // results.append(&mut random_forest::run(&ds)?);
+    // results.push(logistic_regression(&ds)?);
+    // // // results.push(gaussianNB(&ds)?);
+    // results.push(categoricalNB(&ds)?);
+    // results.push(multinomialNB(&ds)?);
+    // results.append(&mut kmeans::run(&ds)?);
+    results.append(&mut dbscan::run(&ds)?);
 
     Ok(results)
 }
@@ -198,6 +207,7 @@ pub(crate) fn run_predict_language() -> Result<Vec<MLResult>, DatasetParseError>
     // // results.push(gaussianNB(&ds)?);
     // results.push(categoricalNB(&ds)?);
     // results.push(multinomialNB(&ds)?);
+    kmeans::run(&ds)?;
 
     Ok(results)
 }

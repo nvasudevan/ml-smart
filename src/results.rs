@@ -64,3 +64,56 @@ pub(crate) fn show(results: Vec<MLResult>) {
     table.printstd();
     println!();
 }
+
+pub(crate) struct KMeansResult {
+    pub(crate) n: usize,
+    pub(crate) k: usize,
+    pub(crate) h_score: f32,
+    pub(crate) c_score: f32,
+}
+
+impl fmt::Display for KMeansResult {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let s = format!(
+            "(n,k,hom,com): ({},{},{},{})",
+            self.n, self.k, self.h_score, self.c_score
+        );
+
+        writeln!(f, "{}", s)
+    }
+}
+
+impl KMeansResult {
+    pub(crate) fn new(n: usize, k: usize, h_score: f32, c_score: f32) -> Self {
+        Self {
+            n,
+            k,
+            h_score,
+            c_score,
+        }
+    }
+}
+pub(crate) fn best_k(results: Vec<KMeansResult>) {
+    let mut best_hom_n = 0;
+    let mut best_hom_k = 0;
+    let mut best_h_score = 0.0;
+    let mut best_com_n = 0;
+    let mut best_com_k = 0;
+    let mut best_c_score = 0.0;
+    for res in results {
+        if res.h_score > best_h_score {
+            best_h_score = res.h_score;
+            best_hom_k = res.k;
+            best_hom_n = res.n;
+        }
+        if res.c_score > best_c_score {
+            best_c_score = res.c_score;
+            best_com_k = res.k;
+            best_com_n = res.n;
+        }
+    }
+    println!("best (hom, n, K): ({},{},{}) (com, n, K): ({},{},{})",
+             best_h_score, best_hom_n, best_hom_k,
+             best_c_score, best_com_n, best_com_k);
+}
+

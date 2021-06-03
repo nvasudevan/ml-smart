@@ -9,6 +9,8 @@ extern crate prettytable;
 #[macro_use]
 extern crate lazy_static;
 
+extern crate rayon;
+
 mod iris;
 mod boston;
 mod dataset;
@@ -16,6 +18,7 @@ mod wine;
 mod wine_quality;
 mod results;
 mod flags;
+mod digits;
 
 #[derive(Clone, Copy)]
 enum KNNDistance {
@@ -93,12 +96,12 @@ fn main() {
     // println!("\n=>[White Wine quality] ML result: \n");
     // show(white_wine_quality_results);
 
-    let flag_re_results = flags::run_predict_religion()
-        .expect("Failed to run flag dataset");
-    println!("\n=>[Flag][predict: religion] ML result\n({}) => {}: \n",
-             dataset::flag::FEATURE_TGT_RELIGION.join(","),
-             dataset::flag::TGT_RELIGION.join(","));
-    show(flag_re_results);
+    // let flag_re_results = flags::run_predict_religion()
+    //     .expect("Failed to run flag dataset");
+    // println!("\n=>[Flag][predict: religion] ML result\n({}) => {}: \n",
+    //          dataset::flag::FEATURE_TGT_RELIGION.join(","),
+    //          dataset::flag::TGT_RELIGION.join(","));
+    // show(flag_re_results);
 
     // let flag_lang_results = flags::run_predict_language()
     //     .expect("Failed to run flag dataset");
@@ -106,4 +109,6 @@ fn main() {
     //          dataset::flag::FEATURE_TGT_LANGUAGE.join(","),
     //          dataset::flag::TGT_LANGUAGE.join(","));
     // show(flag_lang_results);
+
+    digits::run();
 }

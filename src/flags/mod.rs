@@ -187,6 +187,7 @@ pub(crate) fn run_predict_religion() -> Result<Vec<MLResult>, DatasetParseError>
     // results.push(categoricalNB(&ds)?);
     // results.push(multinomialNB(&ds)?);
     // results.append(&mut kmeans::run(&ds)?);
+    kmeans::run(&ds);
     results.append(&mut dbscan::run(&ds)?);
 
     Ok(results)
@@ -207,7 +208,7 @@ pub(crate) fn run_predict_language() -> Result<Vec<MLResult>, DatasetParseError>
     // // results.push(gaussianNB(&ds)?);
     // results.push(categoricalNB(&ds)?);
     // results.push(multinomialNB(&ds)?);
-    kmeans::run(&ds)?;
+    kmeans::run(&ds);
 
     Ok(results)
 }

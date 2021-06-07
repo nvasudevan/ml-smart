@@ -1,3 +1,5 @@
+mod clustering;
+
 use smartcore::dataset::{iris, Dataset};
 use smartcore::linalg::naive::dense_matrix::DenseMatrix;
 use smartcore::neighbors::knn_classifier::KNNClassifier;
@@ -189,15 +191,17 @@ pub(crate) fn run() -> Result<Vec<MLResult>, DatasetParseError> {
     let ds = iris::load_dataset();
     let mut results = Vec::<MLResult>::new();
 
-    results.push(knn_classify(&ds)?);
-    results.push(knn_regression(&ds)?);
-    results.push(linear_regression(&ds)?);
-    results.push(logistic_regression(&ds)?);
-    results.push(gaussianNB(&ds)?);
-    results.push(categoricalNB(&ds)?);
-    results.push(multinomialNB(&ds)?);
-    results.push(tree_classifier(&ds)?);
-    results.push(random_forest_classifier(&ds)?);
+    // results.push(knn_classify(&ds)?);
+    // results.push(knn_regression(&ds)?);
+    // results.push(linear_regression(&ds)?);
+    // results.push(logistic_regression(&ds)?);
+    // results.push(gaussianNB(&ds)?);
+    // results.push(categoricalNB(&ds)?);
+    // results.push(multinomialNB(&ds)?);
+    // results.push(tree_classifier(&ds)?);
+    // results.push(random_forest_classifier(&ds)?);
+
+    clustering::run(&ds);
 
     Ok(results)
 }

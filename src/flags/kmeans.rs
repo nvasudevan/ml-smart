@@ -1,56 +1,44 @@
 use smartcore::cluster::kmeans::{KMeans, KMeansParameters};
-use smartcore::dataset::Dataset;
+use smartcore::dataset::{Dataset, digits};
 use smartcore::linalg::naive::dense_matrix::DenseMatrix;
-use smartcore::metrics::{accuracy, mean_absolute_error};
+use smartcore::metrics::{accuracy, mean_absolute_error, completeness_score, homogeneity_score};
 
 use crate::dataset::DatasetParseError;
-use crate::results::MLResult;
+use crate::results::{MLResult, best_k, KMeansResult};
+use std::time::Instant;
+use rayon::prelude::{IntoParallelIterator, ParallelExtend, ParallelIterator};
 
-const MAX_ITERATIONS: [usize;5] = [100, 150, 200, 250, 300];
-const START_K: usize = 2;
+use crate::kmeans::run_n_k;
 
-fn train_and_test(ds: &Dataset<f32, f32>, k: usize, max_iter: usize) -> Result<MLResult, DatasetParseError> {
-    eprint!(".");
-    let nm_matrix = DenseMatrix::from_array(
+const MAX_ITERATIONS: [usize;6] = [50, 75, 100, 125, 150, 175];
+
+pub(crate) fn run(ds: &Dataset<f32,f32>) {
+    let dm = DenseMatrix::from_array(
         ds.num_samples, ds.num_features, &ds.data,
     );
-    let mut params = KMeansParameters::default().with_k(k).with_max_iter(max_iter);
-    let model = KMeans::fit(&nm_matrix, params)?;
 
-    //now try on test data
-    let p = model.predict(&nm_matrix)?;
-    let params_s = format!("K-Means k={}, max_iter={}", k, max_iter);
-    let res = MLResult::new(params_s,
-                            accuracy(&ds.target, &p),
-                            mean_absolute_error(&ds.target, &p),
-    );
-
-    Ok(res)
-}
-
-pub(crate) fn run(ds: &Dataset<f32, f32>) -> Result<Vec<MLResult>, DatasetParseError> {
-    println!("=> Running kMeans on flag dataset ...");
-    let mut results = Vec::<MLResult>::new();
-    for max_iter in MAX_ITERATIONS.iter() {
-        let mut k = START_K;
-        let mut no_changes = 0;
-        let mut curr_res = MLResult::default();
+    let labels_true = &ds.target;
+    for i in 0..3 {
+        let mut results: Vec<KMeansResult> = vec![];
+        let start = Instant::now();
+        let mut n = 10;
         loop {
-            let res = train_and_test(ds, k, *max_iter)?;
-            if res.acc() >= curr_res.acc() {
-                no_changes = 0;
-                curr_res = res;
-            } else {
-                no_changes += 1;
+            eprint!(".");
+            results.par_extend(
+                (4..16).into_par_iter().map( |k| run_n_k(&dm, n, k, labels_true))
+            );
+            n += 5;
+            if n > 100 {
+                break;
             }
-            if no_changes >= crate::MAX_NO_CHANGES {
-                break
-            }
-            k += 1;
         }
-        results.push(curr_res);
+
+        println!("results: n={}", results.len());
+        let end = start.elapsed();
+        println!("[{}] time taken: {}", i, end.as_secs());
+        best_k(results);
     }
 
-    Ok(results)
+    // println!("v_measure score: {}", v_measure_score(&labels_true, &labels_pred));
 }
 

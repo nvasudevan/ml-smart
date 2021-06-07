@@ -11,7 +11,6 @@ extern crate lazy_static;
 
 extern crate rayon;
 
-mod iris;
 mod boston;
 mod dataset;
 mod wine;
@@ -19,6 +18,8 @@ mod wine_quality;
 mod results;
 mod flags;
 mod digits;
+mod iris;
+mod kmeans;
 
 #[derive(Clone, Copy)]
 enum KNNDistance {
@@ -71,9 +72,9 @@ fn algo_params_as_str(distance: &KNNDistance,
 }
 
 fn main() {
-    // let iris_results = iris::run()
-    //     .expect("ML run failed for Iris dataset");
-    // println!("\n=>[IRIS] ML result: \n");
+    let iris_results = iris::run()
+        .expect("ML run failed for Iris dataset");
+    println!("\n=>[IRIS] ML result: \n");
     // show(iris_results);
     //
     // let boston_results = boston::run()
@@ -110,5 +111,5 @@ fn main() {
     //          dataset::flag::TGT_LANGUAGE.join(","));
     // show(flag_lang_results);
 
-    digits::run();
+    // digits::run();
 }
